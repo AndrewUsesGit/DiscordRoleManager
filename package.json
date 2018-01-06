@@ -1,0 +1,10 @@
+{
+  "name": "DiscordRoleManager",
+  "version": "1.0.0",
+  "description": "Users will be able to self assign roles.",
+  "main": "RoleManager.js",
+  "author": "The Dynamic Duo",
+  "dependencies": {
+    "discord.js": "^11.1.0"
+  }
+}
