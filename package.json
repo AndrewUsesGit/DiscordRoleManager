@@ -1,0 +1,17 @@
+{
+  "name": "DiscordRoleManager",
+  "version": "1.0.0",
+  "description": "Users will be able to self assign roles.",
+  "main": "RoleManager.js",
+  "author": "The Dynamic Duo",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "forever": "^0.15.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "license": "ISC"
+}
