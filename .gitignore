@@ -60,3 +60,5 @@ typings/
 # Other
 .DS_Store
 config.json
+*.ppk
+*.pem
