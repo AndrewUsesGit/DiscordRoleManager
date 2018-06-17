@@ -5,7 +5,7 @@ const config = require('./config.json');
 client.on('ready', (e) => {
   console.log('Discord Bot is up and ready!');
 });
-
+//message = message object, roles = string array, doIAdd = bool
 function ModifyUserRoles(message, roles, doIAdd){
   function VerifyRoles(guild){
     var goodToGo = [];
@@ -69,25 +69,110 @@ function ModifyUserRoles(message, roles, doIAdd){
   }
 }
 
-client.on('message', message => {
+//message = message object, rolesAlreadyHad = bool
+function CheckUserRoles(message, rolesAlreadyHad){
+  //rolesToPrint = sting array
+  function PrintRoles(rolesToPrint){
+    rolesToPrint.forEach(function(currentValue, currentIndex){
+      printMessage += '\n\t\t' + currentValue;
+    });
+    message.channel.send(printMessage);
+  }
 
-    var args = message.content.toLowerCase().split(' ');//Message is now parsed into all lowercase segments
-    if (!message.content.startsWith(config.prefix)) return;
+  var notHad = [];
+  var had = [];
+  var rolesObject = message.guild.roles;
+  var roles = [];
+  rolesObject.forEach(function(currentValue, currentIndex){
+    roles.push(currentValue.name);
+  });
 
-    //Must be the id for the role-assignment-channel
-    if (message.content.startsWith(config.prefix + 'add role') && (message.channel.id === config.roleChannel)){
-        var roles = [];
-        for (var i = 2; i < args.length; i++){
-            roles.push(args[i]);
-        }
-        ModifyUserRoles(message, roles, true);
+  var badRoles = config.ignoreRoles;
+  badRoles.forEach(function(currentValue, currentIndex){
+    var index = roles.indexOf(currentValue);
+    if (index !== -1) roles.splice(index, 1);
+  });
+
+  roles.forEach(function(currentValue, currentIndex){
+    if(!message.member.roles.has(message.guild.roles.find("name", currentValue).id)){
+      notHad.push(currentValue);
+    }else{
+      had.push(currentValue);
     }
-    else if(message.content.startsWith(config.prefix + 'remove role') && (message.channel.id === config.roleChannel)){
-        var roles = [];
-        for (var i = 2; i < args.length; i++){
-            roles.push(args[i]);
-        }
-        ModifyUserRoles(message, roles, false);
+  });
+
+  var printMessage = '';
+  if (rolesAlreadyHad){
+    printMessage += message.member + ', you can remove these roles:'
+    PrintRoles(had);
+  }else{
+    printMessage += message.member + ', you can add these roles:'
+    PrintRoles(notHad);
+  }
+}
+
+client.on('message', message => {
+    if (message.channel.id === config.rulesChannel){
+      if (message.content === "!understood"){
+        message.member.addRole(message.guild.roles.find("name", "citizen")).catch(console.error());
+      }
+      if (!message.member.roles.has(message.guild.roles.find("name", "Mods").id)){
+        message.delete().catch(x => {});
+      }
+    }else if (message.channel.id === config.roleChannel){
+      if (!message.content.startsWith(config.prefix)) return;
+      var args = message.content.toLowerCase().split(' ');//Message is now parsed into all lowercase segments
+
+      switch (args.length) {
+        case 1:
+          if(message.content === "!help"){
+            message.channel.send(`
+            ------Current commands------
+            To add single role: "!add role <role>"
+            To add multiple roles: \"!add role <roles> <you> <want>\"
+            To remove single role: \"!remove role <role>\"
+            To remove multiple roles: \"!add role <roles> <to> <remove>\"
+            To see which roles you can add: \"!add role\"
+            To see which roles you can remove: \"!remove role\"
+            To see full list of roles: \"!help roles\"
+            `)
+          }
+          break;
+
+        case 2:
+          if (message.content  === "!help roles"){
+            var rolesString = '';
+            message.guild.roles.forEach(function(currentValue, currentIndex){
+              rolesString += currentValue.name + '\n';
+            });
+            rolesString = rolesString.slice(0, -1);
+            message.channel.send(rolesString);
+          }
+          else if (message.content === "!add role"){
+            CheckUserRoles(message, false)
+          }
+          else if (message.content === "!remove role"){
+            CheckUserRoles(message, true)
+          }
+          break;
+
+        default:
+          //Must be the id for the role-assignment-channel
+          if (message.content.startsWith(config.prefix + 'add role')){
+            var roles = [];
+            for (var i = 2; i < args.length; i++){
+              roles.push(args[i]);
+            }
+            ModifyUserRoles(message, roles, true);
+          }
+          else if(message.content.startsWith(config.prefix + 'remove role')){
+            var roles = [];
+            for (var i = 2; i < args.length; i++){
+              roles.push(args[i]);
+            }
+            ModifyUserRoles(message, roles, false);
+          }
+      }
     }
 });
 
